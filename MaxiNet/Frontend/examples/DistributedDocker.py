@@ -61,7 +61,31 @@ print exp.get_node("d2").cmd("ifconfig")
 print "waiting 5 seconds for routing algorithms on the controller to converge"
 time.sleep(5)
 
+print "ping d1 ---> d2"
 print exp.get_node("d1").cmd("ping -c 5 10.0.0.252")
+print "ping d2 ---> d1"
+print exp.get_node("d2").cmd("ping -c 5 10.0.0.251")
+
+print "add d3 at runtime"
+d3 = exp.addDocker('d3', dimage="ubuntu:trusty")
+
+print "add link s1 <---> d3"
+exp.addLink(exp.get_node("d3"), exp.get_node("s1"), params1={"ip": "10.0.0.254/8"})
+
+
+print "wait 5 seconds"
+time.sleep(5)
+
+print "ping d3 --> d1"
+print d3.cmd("ping -c 5 10.0.0.251")
+print "ping d1 --> d3"
+print exp.get_node("d1").cmd("ping -c 5 10.0.0.254")
+
+print "ping d3 --> d2"
+print d3.cmd("ping -c 5 10.0.0.252")
+print "ping d2 --> d3"
+print exp.get_node("d2").cmd("ping -c 5 10.0.0.254")
+
 
 print "waiting 5 seconds again"
 time.sleep(5)
