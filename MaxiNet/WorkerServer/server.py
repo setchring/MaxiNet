@@ -10,13 +10,16 @@ import sys
 import tempfile
 import time
 
-from mininet.node import UserSwitch, OVSSwitch
+
+from mininet.node import UserSwitch
 from mininet.link import TCLink, TCIntf
 from mininet.net import Mininet
+from mininet.clean import cleanup
 import mininet.term
 import Pyro4
 import threading
 import traceback
+from subprocess import Popen
 
 from MaxiNet.tools import Tools, MaxiNetConfig
 from MaxiNet.WorkerServer.ssh_manager import SSH_Manager
@@ -60,6 +63,9 @@ class WorkerServer(object):
         self._password = None
 
         self._looping_thread = None
+
+        #Flag if dockerdaemon has modified at startup
+        self.restoreDockerDaemonAtExit = False
 
 
     def exit_handler(self, signal, frame):
@@ -110,10 +116,14 @@ class WorkerServer(object):
             time.sleep(5)
 
     @Pyro4.expose
-    def start(self, ip, port, password, retry=float("inf")):
+    def start(self, ip, port, password, retry=float("inf"), dockerRegistryAddress=None, dockerRegistryArgs=None):
         """Start WorkerServer and ssh daemon and connect to nameserver."""
         self.logger.info("starting up and connecting to  %s:%d"
                          % (ip, port))
+
+        # Cleanup mininet for a clean worker environment. Reduce overhead for user if previous run crashed.
+        # Maybe TODO: make configurable from Configfile ?
+        cleanup()
 
         #store for reconnection attempts
         self._ip = ip
@@ -163,6 +173,9 @@ class WorkerServer(object):
             self._manager._pyroHmacKey=self._password
             self.logger.info("signing in...")
             if(self._manager.worker_signin(self._get_pyroname(), self.get_hostname())):
+                # maybe the dockerdaemon has to be customized
+                self.start_custom_dockerd(dockerRegistryAddress, dockerRegistryArgs)
+
                 self.logger.info("done. Entering requestloop.")
                 self._started = True
                 self._looping_thread = threading.Thread(target=self._pyrodaemon.requestLoop)
@@ -176,6 +189,39 @@ class WorkerServer(object):
     def _get_pyroname(self):
         return "MaxiNetWorker_%s" % self.get_hostname()
 
+    def start_custom_dockerd(self, dockerRegistryAddress, dockerRegistryArgs):
+        if not dockerRegistryAddress:
+            # No mirror in config set --> nothing to do
+            # self.restoreDockerDaemonAtExit is false by default
+            return
+        # if the dockermirror was set, we have to restart the docker daemon with the mirror
+        # workerserver.run_cmd("sudo service docker stop")
+        # workerserver.run_cmd("kill $(pgrep dockerd)")
+        # workerserver.daemonize("dockerd --registry-mirror=" + dockerMirror + " " + dockerdArgs)
+        executeBash("sudo service docker stop")
+        pid = executeBash("pgrep dockerd")
+        executeBash("kill " + pid)
+        while pid:
+            pid = executeBash("pgrep dockerd")
+            time.sleep(5)
+        logFile = open('/tmp/dockerd.log', 'w') #todo in doku nennen
+        executeBash("dockerd --registry-mirror=%s %s" % (dockerRegistryAddress, dockerRegistryArgs), False, stdout=logFile, stderr=logFile)
+        #executeBash("dockerd --registry-mirror=" + dockerMirror + " " + dockerdArgs + " &")
+        self.restoreDockerDaemonAtExit = True
+
+    def stop_custom_dockerd(self):
+        pid = executeBash("pgrep dockerd")
+
+        executeBash("kill " + pid)
+        self.logger.info("Stopping modified dockerd process")
+        while pid:
+            pid = executeBash("pgrep dockerd")
+            self.logger.info("...")
+            time.sleep(5)
+        self.logger.info("Starting normal docker service")
+        executeBash("sudo service docker start")
+        # executeBash("sudo service docker start")
+
     @Pyro4.expose
     def get_hostname(self):
         return subprocess.check_output(["hostname"]).strip()
@@ -185,6 +231,23 @@ class WorkerServer(object):
         if(self._manager):
             self._manager.worker_signout(self.get_hostname())
         self.logger.info("shutting down...")
+
+        import shlex, subprocess
+        #command_line = "ls -a"
+        #args = shlex.split(command_line)
+        #p = subprocess.Popen(args)
+
+        #restore dockerdaemon
+        #cl = "kill $(pgrep dockerd)"
+        #args = shlex.split(cl)
+        #subprocess.check_output(args)
+
+        #self.run_cmd("kill $(pgrep dockerd)")
+        #self.daemonize("start docker")
+
+        if self.restoreDockerDaemonAtExit:
+            self.stop_custom_dockerd()
+
         self._ns.remove(self._get_pyroname())
         self._ns.remove(self._get_pyroname()+".mnManager")
         self._pyrodaemon.unregister(self)
@@ -317,6 +380,8 @@ class MininetManager(object):
                 popen.communicate()
                 popen.wait()
             self.net.stop()
+            # remove mininet instance and running docker container
+            cleanup()
             self.logger.info("mininet instance terminated")
             self.net = None
 
@@ -432,6 +497,9 @@ def main():
     if parsed.password:
         pw = parsed.password
 
+    # Collect data from config file
+    dockerRegistryAddress, dockerRegistryArgs = config.get_docker_registry_config()
+
     if os.getuid() != 0:
         print "MaxiNetWorker must run with root privileges!"
         sys.exit(1)
@@ -444,10 +512,24 @@ def main():
 
         signal.signal(signal.SIGINT, workerserver.exit_handler)
 
-        workerserver.start(ip=ip, port=port, password=pw)
+        workerserver.start(ip=ip, port=port, password=pw, dockerRegistryAddress=dockerRegistryAddress,
+                           dockerRegistryArgs=dockerRegistryArgs)
         workerserver.monitorFrontend()
 
 
+def executeBash(command, sync=True, stdout=None, stderr=None):
+    # Executes a bash command at the worker.
+    if sync:
+        try:
+            output = subprocess.check_output(['bash', '-c', command])
+        except subprocess.CalledProcessError:
+            return ""
+    #process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+    #output = process.communicate()[0]
+    else:
+        Popen(['bash', '-c', command], stdout=stdout, stderr=stderr)
+        return ""
+    return output
 
 if(__name__ == "__main__"):
     main()

@@ -7,11 +7,11 @@
 import time
 
 from MaxiNet.Frontend.containernetWrapper import ContainernetTopo, ContainerExperiment
-from MaxiNet.Frontend import maxinet
-from MaxiNet.tools import FatTree
+from MaxiNet.Frontend.maxinet import Cluster
+from MaxiNet.tools import Tools
 from mininet.log import setLogLevel, info
-from mininet.net import Containernet
-from mininet.node import OVSSwitch, Node
+from mininet.node import OVSSwitch
+
 
 setLogLevel('info')
 
@@ -47,9 +47,9 @@ topo.addLink(s1, s2)
 #net.addLink(d3, s3)
 
 
-cluster = maxinet.Cluster()
+cluster = Cluster()
 
-exp = ContainerExperiment(cluster, topo)
+exp = ContainerExperiment(cluster, topo, switch=OVSSwitch)
 exp.setup()
 
 print exp.get_node("h1").cmd("ifconfig")  # call mininet cmd function of h1
@@ -59,18 +59,26 @@ print exp.get_node("d1").cmd("ifconfig")
 print exp.get_node("d2").cmd("ifconfig")
 
 print "waiting 5 seconds for routing algorithms on the controller to converge"
-time.sleep(5)
+#time.sleep(5)
 
 print "ping d1 ---> d2"
-print exp.get_node("d1").cmd("ping -c 5 10.0.0.252")
+#print exp.get_node("d1").cmd("ping -c 5 10.0.0.252")
 print "ping d2 ---> d1"
-print exp.get_node("d2").cmd("ping -c 5 10.0.0.251")
+#print exp.get_node("d2").cmd("ping -c 5 10.0.0.251")
+
+#exp.CLI(locals(), globals())
 
 print "add d3 at runtime"
-d3 = exp.addDocker('d3', dimage="ubuntu:trusty")
+#worker = exp.get_worker('s1')
+#worker.addDocker('d4', dimage="ubuntu:trusty")
+d3 = exp.addDocker("d3", pos="s1", dimage="ubuntu:trusty", ip="10.0.0.254", max=Tools.makeMAC(3))
+#d3.setIP(ip='10.0.0.254')
+#h3 = exp.get_worker("s1").addHost('h3', ip=Tools.makeIP(3), max=Tools.makeMAC(3))
+#d3 = exp.get_worker("s1").addDocker('d3', dimage="ubuntu:trusty")
 
 print "add link s1 <---> d3"
-exp.addLink(exp.get_node("d3"), exp.get_node("s1"), params1={"ip": "10.0.0.254/8"})
+#exp.addLink(exp.get_node("d3"), exp.get_node("s1"), params1={"ip": "10.0.0.254/8"})
+exp.addLink("d3", "s1", autoconf=True)
 
 
 print "wait 5 seconds"
@@ -85,10 +93,6 @@ print "ping d3 --> d2"
 print d3.cmd("ping -c 5 10.0.0.252")
 print "ping d2 --> d3"
 print exp.get_node("d2").cmd("ping -c 5 10.0.0.254")
-
-
-print "waiting 5 seconds again"
-time.sleep(5)
 
 
 exp.CLI(locals(), globals())

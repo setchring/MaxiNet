@@ -9,6 +9,7 @@ import subprocess
 import tempfile
 import threading
 import time
+from ConfigParser import NoOptionError
 
 import Pyro4
 
@@ -108,6 +109,13 @@ class MaxiNetConfig(RawConfigParser):
                 "INFO": logging.INFO,
                 "DEBUG": logging.DEBUG}
         return lvls[lvl]
+
+    @Pyro4.expose
+    def get_docker_registry_config(self):
+        try: # to get additional_dockerd_args
+            return self.get("containernet", "docker_registry_ip"), self.get("containernet", "additional_dockerd_args")
+        except NoOptionError:
+            return None, None
 
     def register(self):
         self.nameserver = Pyro4.locateNS(self.get_nameserver_ip(), self.get_nameserver_port(), hmac_key=self.get_nameserver_password())
