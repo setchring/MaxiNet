@@ -114,7 +114,9 @@ class MaxiNetConfig(RawConfigParser):
     def get_docker_registry_config(self):
         try: # to get additional_dockerd_args
             return self.get("containernet", "docker_registry_ip"), self.get("containernet", "additional_dockerd_args")
-        except NoOptionError or NoSectionError:
+        except NoOptionError:
+            return None, None
+        except NoSectionError:
             return None, None
 
 
