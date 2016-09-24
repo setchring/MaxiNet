@@ -14,33 +14,49 @@ from time import  time
 import plotly.tools as tls
 
 
-def plotBoxes(mininetHostTimes, dockerHostTimes):
+def plotBoxes(mininetHostTimes1, mininetHostTimes2, dockerHostTimes1, dockerHostTimes2):
     from plotly.graph_objs import Bar, Scatter, Figure, Layout
     import plotly.plotly as py
     import plotly.graph_objs as go
 
     trace0 = go.Box(
-        y=mininetHostTimes,
-        name='Startzeit Mininet Hosts',
+        y=mininetHostTimes1,
+        name='Startzeit Mininet Hosts (Ein Worker)',
         marker=dict(
             color='rgb(8, 81, 156)',
         ),
         boxmean='sd'
     )
     trace1 = go.Box(
-        y=dockerHostTimes,
-        name='Startzeit Ubuntu Container',
+        y=mininetHostTimes2,
+        name='Startzeit Mininet Hosts (Zwei Worker)',
+        marker=dict(
+            color='rgb(8, 81, 156)',
+        ),
+        boxmean='sd'
+    )
+    trace2 = go.Box(
+        y=dockerHostTimes1,
+        name='Startzeit Ubuntu Container (Ein Worker)',
         marker=dict(
             color='rgb(10, 140, 208)',
         ),
         boxmean='sd'
     )
-    data = [trace0, trace1]
+    trace3 = go.Box(
+        y=dockerHostTimes2,
+        name='Startzeit Ubuntu Container (Zwei Worker)',
+        marker=dict(
+            color='rgb(10, 140, 208)',
+        ),
+        boxmean='sd'
+    )
+    data = [trace0, trace1, trace2, trace3]
     layout = Layout(title='My Plot')
     py.plot(data, layout)
 
 
-def runHostTopo(n, minWorker, dimage=None):
+def runHostTopo(n, maxWorker, dimage=None):
     n += 1
     topo = ContainernetTopo(controller=OVSSwitch)
 
@@ -76,7 +92,7 @@ def runHostTopo(n, minWorker, dimage=None):
             topo.addLink(s2, d)
             L.append(d)
 
-    cluster = Cluster(minWorkers=minWorker)
+    cluster = Cluster(maxWorkers=maxWorker)
 
     exp = ContainerExperiment(cluster, topo, switch=OVSSwitch)
 
@@ -102,28 +118,28 @@ tls.set_credentials_file(username='setchring', api_key='hhtnrk0t9x')
 setLogLevel('info')
 
 # test startup for n mininet hosts
-n = 5
+n = 60
 # number of testruns
-runs = 2
+runs = 100
 
 elapsedTimeNormal_1Worker, elapsedTimeUbuntu_1Worker, elapsedTimeNormal_2Worker, elapsedTimeUbuntu_2Worker = [], [], [], []
 
 #logFile = open('/tmp/measurementsMininetVSDocker.csv', 'w')
 
-# for i in xrange(1, runs + 1):
-#     elapsedTimeNormal_1Worker.append(runHostTopo(n, 1))
-#
-# for i in xrange(1, runs + 1):
-#     elapsedTimeUbuntu_1Worker.append(runHostTopo(n, 1, "ubuntu:trusty"))
-#
-# for i in xrange(1, runs + 1):
-#     elapsedTimeNormal_2Worker.append(runHostTopo(n, 2))
-#
-# for i in xrange(1, runs + 1):
-#     elapsedTimeUbuntu_2Worker.append(runHostTopo(n, 2, "ubuntu:trusty"))
-elapsedTimeNormal_1Worker = [1, 3]
-elapsedTimeUbuntu_1Worker = [1, 4]
-plotBoxes(elapsedTimeNormal_1Worker, elapsedTimeUbuntu_1Worker)
+for i in xrange(1, runs + 1):
+    elapsedTimeNormal_1Worker.append(runHostTopo(n, 1))
+
+for i in xrange(1, runs + 1):
+    elapsedTimeUbuntu_1Worker.append(runHostTopo(n, 1, "ubuntu:trusty"))
+
+for i in xrange(1, runs + 1):
+    elapsedTimeNormal_2Worker.append(runHostTopo(n, 2))
+
+for i in xrange(1, runs + 1):
+    elapsedTimeUbuntu_2Worker.append(runHostTopo(n, 2, "ubuntu:trusty"))
+
+
+plotBoxes(elapsedTimeNormal_1Worker, elapsedTimeNormal_2Worker, elapsedTimeUbuntu_1Worker, elapsedTimeUbuntu_2Worker)
 
 #print 'Startup time normal hosts: %d seconds' % (elapsedTimeNormal/runs)
 #print 'Startup time docker \"%s\" hosts: %d seconds' % ("ubuntu:trusty", elapsedTimeUbuntu/runs)
