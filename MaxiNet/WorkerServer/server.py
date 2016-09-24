@@ -195,18 +195,16 @@ class WorkerServer(object):
             # self.restoreDockerDaemonAtExit is false by default
             return
         # if the dockermirror was set, we have to restart the docker daemon with the mirror
-        # workerserver.run_cmd("sudo service docker stop")
-        # workerserver.run_cmd("kill $(pgrep dockerd)")
-        # workerserver.daemonize("dockerd --registry-mirror=" + dockerMirror + " " + dockerdArgs)
         executeBash("sudo service docker stop")
         pid = executeBash("pgrep dockerd")
         executeBash("kill " + pid)
         while pid:
             pid = executeBash("pgrep dockerd")
             time.sleep(5)
-        logFile = open('/tmp/dockerd.log', 'w') #todo in doku nennen
-        executeBash("dockerd --registry-mirror=%s %s" % (dockerRegistryAddress, dockerRegistryArgs), False, stdout=logFile, stderr=logFile)
-        #executeBash("dockerd --registry-mirror=" + dockerMirror + " " + dockerdArgs + " &")
+        logFile = open('/tmp/dockerd.log', 'w') # Todo: in doku nennen
+        executeBash("dockerd --registry-mirror=%s %s" % (dockerRegistryAddress, dockerRegistryArgs), False,
+                    stdout=logFile, stderr=logFile)
+
         self.restoreDockerDaemonAtExit = True
 
     def stop_custom_dockerd(self):
@@ -220,7 +218,6 @@ class WorkerServer(object):
             time.sleep(5)
         self.logger.info("Starting normal docker service")
         executeBash("sudo service docker start")
-        # executeBash("sudo service docker start")
 
     @Pyro4.expose
     def get_hostname(self):
@@ -231,19 +228,6 @@ class WorkerServer(object):
         if(self._manager):
             self._manager.worker_signout(self.get_hostname())
         self.logger.info("shutting down...")
-
-        import shlex, subprocess
-        #command_line = "ls -a"
-        #args = shlex.split(command_line)
-        #p = subprocess.Popen(args)
-
-        #restore dockerdaemon
-        #cl = "kill $(pgrep dockerd)"
-        #args = shlex.split(cl)
-        #subprocess.check_output(args)
-
-        #self.run_cmd("kill $(pgrep dockerd)")
-        #self.daemonize("start docker")
 
         if self.restoreDockerDaemonAtExit:
             self.stop_custom_dockerd()
@@ -524,8 +508,6 @@ def executeBash(command, sync=True, stdout=None, stderr=None):
             output = subprocess.check_output(['bash', '-c', command])
         except subprocess.CalledProcessError:
             return ""
-    #process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
-    #output = process.communicate()[0]
     else:
         Popen(['bash', '-c', command], stdout=stdout, stderr=stderr)
         return ""

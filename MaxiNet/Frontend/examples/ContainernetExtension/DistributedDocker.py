@@ -17,8 +17,6 @@ setLogLevel('info')
 
 topo = ContainernetTopo(controller=OVSSwitch)
 
-info('*** Adding controller\n')
-
 
 info('*** Adding hosts\n')
 h1 = topo.addHost('h1')
