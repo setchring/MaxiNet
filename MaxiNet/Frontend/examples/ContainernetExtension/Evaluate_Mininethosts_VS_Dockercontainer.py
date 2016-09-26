@@ -4,7 +4,7 @@
 # Minimal example showing how to use MaxiNet
 #
 
-import time
+import time, sys
 
 from MaxiNet.Frontend.containernetWrapper import ContainernetTopo, ContainerExperiment
 from MaxiNet.Frontend.maxinet import Cluster
@@ -117,6 +117,10 @@ tls.set_credentials_file(username='setchring', api_key='hhtnrk0t9x')
 
 setLogLevel('info')
 
+logfile = open('/tmp/evaluationLog', 'w')
+sys.stderr = logfile
+sys.stdin = logfile
+
 # test startup for n mininet hosts
 n = 60
 # number of testruns
@@ -138,8 +142,24 @@ for i in xrange(1, runs + 1):
 for i in xrange(1, runs + 1):
     elapsedTimeUbuntu_2Worker.append(runHostTopo(n, 2, "ubuntu:trusty"))
 
+f = open('/tmp/results', 'w')
+
+f.write('elapsedTimeNormal_1Worker\n')
+f.write(str(elapsedTimeNormal_1Worker))
+
+f.write('elapsedTimeNormal_2Worker\n')
+f.write(str(elapsedTimeNormal_2Worker))
+
+f.write('elapsedTimeUbuntu_1Worker\n')
+f.write(str(elapsedTimeUbuntu_1Worker))
+
+f.write('elapsedTimeUbuntu_2Worker\n')
+f.write(str(elapsedTimeUbuntu_2Worker))
+
+f.close()
 
 plotBoxes(elapsedTimeNormal_1Worker, elapsedTimeNormal_2Worker, elapsedTimeUbuntu_1Worker, elapsedTimeUbuntu_2Worker)
 
+logfile.close()
 #print 'Startup time normal hosts: %d seconds' % (elapsedTimeNormal/runs)
 #print 'Startup time docker \"%s\" hosts: %d seconds' % ("ubuntu:trusty", elapsedTimeUbuntu/runs)
