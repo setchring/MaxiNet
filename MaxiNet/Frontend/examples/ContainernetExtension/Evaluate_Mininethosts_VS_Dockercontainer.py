@@ -147,13 +147,13 @@ f = open('/tmp/results', 'w')
 f.write('elapsedTimeNormal_1Worker\n')
 f.write(str(elapsedTimeNormal_1Worker))
 
-f.write('elapsedTimeNormal_2Worker\n')
+f.write('\nelapsedTimeNormal_2Worker\n')
 f.write(str(elapsedTimeNormal_2Worker))
 
-f.write('elapsedTimeUbuntu_1Worker\n')
+f.write('\nelapsedTimeUbuntu_1Worker\n')
 f.write(str(elapsedTimeUbuntu_1Worker))
 
-f.write('elapsedTimeUbuntu_2Worker\n')
+f.write('\nelapsedTimeUbuntu_2Worker\n')
 f.write(str(elapsedTimeUbuntu_2Worker))
 
 f.close()
