@@ -6,9 +6,8 @@
 
 import time, sys
 
-from MaxiNet.Frontend import maxinet
-from MaxiNet.tools import Tools
-from mininet.topo import Topo
+from MaxiNet.Frontend.containernetWrapper import ContainernetTopo, ContainerExperiment
+from MaxiNet.Frontend.maxinet import Cluster
 from mininet.log import setLogLevel, info
 from mininet.node import OVSSwitch
 from time import time
@@ -72,7 +71,7 @@ def runHostTopo(n, maxWorker, dimage=None):
     L = list()
 
     if not dimage:
-        for i in xrange(2, n):
+        for i in xrange(1, n):
             h = topo.addHost('h{0}'.format(i * 2))
             topo.addLink(s1, h)
             L.append(h)
@@ -83,7 +82,7 @@ def runHostTopo(n, maxWorker, dimage=None):
             L.append(h)
 
     else:
-        for i in xrange(2, n):
+        for i in xrange(1, n):
             d = topo.addDocker('d{0}'.format(i * 2), ip='10.0.0.{0}'.format(i * 2), dimage=dimage)
             topo.addLink(s1, d)
             L.append(d)
@@ -93,9 +92,9 @@ def runHostTopo(n, maxWorker, dimage=None):
             topo.addLink(s2, d)
             L.append(d)
 
-    cluster = maxinet.Cluster(minWorkers=maxWorker, maxWorkers=maxWorker)
+    cluster = Cluster(minWorkers=maxWorker, maxWorkers=maxWorker)
 
-    exp = maxinet.Experiment(cluster, topo, switch=OVSSwitch)
+    exp = ContainerExperiment(cluster, topo, switch=OVSSwitch)
 
     start = time()
     exp.setup()
