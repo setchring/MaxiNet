@@ -52,7 +52,7 @@ def plotBoxes(mininetHostTimes1, mininetHostTimes2, dockerHostTimes1, dockerHost
         boxmean='sd'
     )
     data = [trace0, trace1, trace2, trace3]
-    layout = go.Layout(title='Startvergleich mit ' + str(hostnumber) + ' Hosts bzw. Containern')
+    layout = go.Layout(title='Startvergleich mit ' + str(hostnumber*2) + ' Hosts bzw. Containern')
     figure = go.Figure(data=data, layout=layout)
     py.plot(figure, auto_open=False)
 
@@ -123,13 +123,13 @@ def maintest(numOfHosts, runs, file):
         elapsedTimeNormal_1Worker.append(runHostTopo(numOfHosts, 1))
 
     for i in xrange(1, runs + 1):
-        elapsedTimeUbuntu_1Worker.append(runHostTopo(numOfHosts, 1))
+        elapsedTimeUbuntu_1Worker.append(runHostTopo(numOfHosts, 1, "ubuntu:trusty"))
 
     for i in xrange(1, runs + 1):
         elapsedTimeNormal_2Worker.append(runHostTopo(numOfHosts, 2))
 
     for i in xrange(1, runs + 1):
-        elapsedTimeUbuntu_2Worker.append(runHostTopo(numOfHosts, 2))
+        elapsedTimeUbuntu_2Worker.append(runHostTopo(numOfHosts, 2, "ubuntu:trusty"))
 
     file.write('elapsedTimeNormal_1Worker\n')
     file.write(str(elapsedTimeNormal_1Worker))
@@ -157,11 +157,11 @@ sys.stdin = logfile
 
 f = open('/tmp/results', 'w')
 
-j = 10
+j = 5
 
-while j < 30:
-    maintest(j, 15, f)
-    j += 10
+
+maintest(j, 5, f)
+
 
 f.close()
 logfile.close()
