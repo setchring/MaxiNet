@@ -748,7 +748,10 @@ class Cluster(object):
         self._pyrodaemon.unregister(self)
         self._pyrodaemon.shutdown()
 
-
+    @Pyro4.expose
+    def stop(self):
+        # Debug test. It should close unessesary tty threads
+        self._stop()
 
     @Pyro4.expose
     def num_workers(self):

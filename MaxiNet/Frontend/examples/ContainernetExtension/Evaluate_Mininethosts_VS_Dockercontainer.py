@@ -6,8 +6,9 @@
 
 import time, sys
 
-from MaxiNet.Frontend.containernetWrapper import ContainernetTopo, ContainerExperiment
-from MaxiNet.Frontend.maxinet import Cluster
+from MaxiNet.Frontend import maxinet
+from MaxiNet.tools import Tools
+from mininet.topo import Topo
 from mininet.log import setLogLevel, info
 from mininet.node import OVSSwitch
 from time import time
@@ -58,7 +59,7 @@ def plotBoxes(mininetHostTimes1, mininetHostTimes2, dockerHostTimes1, dockerHost
 
 def runHostTopo(n, maxWorker, dimage=None):
     n += 1
-    topo = ContainernetTopo(controller=OVSSwitch)
+    topo = Topo(controller=OVSSwitch)
 
     info('*** Adding switch\n')
     s1 = topo.addSwitch('s1')
@@ -92,9 +93,9 @@ def runHostTopo(n, maxWorker, dimage=None):
             topo.addLink(s2, d)
             L.append(d)
 
-    cluster = Cluster(minWorkers=maxWorker, maxWorkers=maxWorker)
+    cluster = maxinet.Cluster(minWorkers=maxWorker, maxWorkers=maxWorker)
 
-    exp = ContainerExperiment(cluster, topo, switch=OVSSwitch)
+    exp = maxinet.Experiment(cluster, topo, switch=OVSSwitch)
 
     start = time()
     exp.setup()
@@ -108,7 +109,7 @@ def runHostTopo(n, maxWorker, dimage=None):
     print(elapsedTime)
 
     exp.stop()
-    cluster.remove_workers()
+    cluster.stop()
 
     return elapsedTime
 
@@ -122,13 +123,13 @@ def maintest(numOfHosts, runs, file):
         elapsedTimeNormal_1Worker.append(runHostTopo(numOfHosts, 1))
 
     for i in xrange(1, runs + 1):
-        elapsedTimeUbuntu_1Worker.append(runHostTopo(numOfHosts, 1, "ubuntu:trusty"))
+        elapsedTimeUbuntu_1Worker.append(runHostTopo(numOfHosts, 1))
 
     for i in xrange(1, runs + 1):
         elapsedTimeNormal_2Worker.append(runHostTopo(numOfHosts, 2))
 
     for i in xrange(1, runs + 1):
-        elapsedTimeUbuntu_2Worker.append(runHostTopo(numOfHosts, 2, "ubuntu:trusty"))
+        elapsedTimeUbuntu_2Worker.append(runHostTopo(numOfHosts, 2))
 
     file.write('elapsedTimeNormal_1Worker\n')
     file.write(str(elapsedTimeNormal_1Worker))
@@ -158,7 +159,7 @@ f = open('/tmp/results', 'w')
 
 j = 10
 
-while j < 1000:
+while j < 30:
     maintest(j, 15, f)
     j += 10
 
