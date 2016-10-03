@@ -159,7 +159,7 @@ def runHostTopo(n, maxWorker, dimage=None):
     return elapsedTime
 
 
-def maintest(numOfHosts, runs, file):
+def startTimeTest(numOfHosts, runs, resultFile):
     elapsedTimeNormal_1Worker, elapsedTimeUbuntu_1Worker, elapsedTimeNormal_2Worker, elapsedTimeUbuntu_2Worker = [], [], [], []
 
     # logFile = open('/tmp/measurementsMininetVSDocker.csv', 'w')
@@ -176,20 +176,64 @@ def maintest(numOfHosts, runs, file):
     for i in xrange(1, runs + 1):
         elapsedTimeUbuntu_2Worker.append(runHostTopo(numOfHosts, 2, "ubuntu:trusty"))
 
-    file.write('elapsedTimeNormal_1Worker\n')
-    file.write(str(elapsedTimeNormal_1Worker))
+    resultFile.write('elapsedTimeNormal_1Worker\n')
+    resultFile.write(str(elapsedTimeNormal_1Worker))
 
-    file.write('\nelapsedTimeNormal_2Worker\n')
-    file.write(str(elapsedTimeNormal_2Worker))
+    resultFile.write('\nelapsedTimeNormal_2Worker\n')
+    resultFile.write(str(elapsedTimeNormal_2Worker))
 
-    file.write('\nelapsedTimeUbuntu_1Worker\n')
-    file.write(str(elapsedTimeUbuntu_1Worker))
+    resultFile.write('\nelapsedTimeUbuntu_1Worker\n')
+    resultFile.write(str(elapsedTimeUbuntu_1Worker))
 
-    file.write('\nelapsedTimeUbuntu_2Worker\n')
-    file.write(str(elapsedTimeUbuntu_2Worker))
+    resultFile.write('\nelapsedTimeUbuntu_2Worker\n')
+    resultFile.write(str(elapsedTimeUbuntu_2Worker))
 
     plotBoxesForStartComparison(elapsedTimeNormal_1Worker, elapsedTimeNormal_2Worker, elapsedTimeUbuntu_1Worker,
                                 elapsedTimeUbuntu_2Worker, numOfHosts)
+
+
+def evaluateStartAndIdleUsage():
+    n = 280
+    topo = ContainernetTopo(controller=OVSSwitch)
+
+    info('*** Adding switch\n')
+    s1 = topo.addSwitch('s1')
+    s2 = topo.addSwitch('s2')
+
+    topo.addLink(s1, s2)
+
+    info('*** Adding hosts\n')
+
+    L = list()
+
+    for i in xrange(1, n):
+        h = topo.addHost('h{0}'.format(i * 2))
+        topo.addLink(s1, h)
+        L.append(h)
+
+    for i in xrange(1, n):
+        d = topo.addDocker('d{0}'.format((i * 2) + 1), ip='10.0.0.{0}'.format((i * 2) + 1), dimage='ubuntu:trusty')
+        topo.addLink(s2, d)
+        L.append(d)
+
+    cluster = Cluster(minWorkers=2, maxWorkers=2)
+
+    exp = ContainerExperiment(cluster, topo, switch=OVSSwitch)
+
+    exp.monitor()
+
+    t.sleep(30)
+
+    exp.setup()
+
+    t.sleep(120)
+
+    exp.stop()
+    cluster.stop()
+
+    print 'Look into /tmp/maxinet... for CPU, Network and RAM usage.'
+
+    return
 
 
 def threaded_cmdExecution(host, cmd):
@@ -275,7 +319,8 @@ def benchmarkTest():
     runtimeHostsTwoWorker = compareRunningMachines(2)
     runtimeDockerTwoWorker = compareRunningMachines(2, 'setchring/ubuntu:sysbench')
 
-    plotBoxesForRunComparison(runtimeHostsOneWorker, runtimeDockerOneWorker, runtimeHostsTwoWorker, runtimeDockerTwoWorker)
+    plotBoxesForRunComparison(runtimeHostsOneWorker, runtimeDockerOneWorker, runtimeHostsTwoWorker,
+                              runtimeDockerTwoWorker)
 
 
 tls.set_credentials_file(username='setchring', api_key='hhtnrk0t9x')
@@ -288,10 +333,15 @@ sys.stdin = logfile
 
 f = open('/tmp/results', 'w')
 
+# Evaluate starttimes of mininet hosts and Ubuntu containers
 j = 5
+# startTimeTest(j, 5, f)
 
-# maintest(j, 5, f)
-benchmarkTest()
+# Evaluate CPU efficiency with CPU benchmarking tool.
+# benchmarkTest()
+
+# Evaluate CPU, RAM and Network usage Hosts vs. Ubuntu container
+evaluateStartAndIdleUsage()
 
 f.close()
 logfile.close()
