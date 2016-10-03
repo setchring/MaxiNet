@@ -1,7 +1,7 @@
 #!/usr/bin/python2
 
 #
-# Minimal example showing how to use MaxiNet
+# Evaluation suite for comparisons between maxinet hosts and docker container
 #
 
 import sys
