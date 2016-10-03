@@ -266,7 +266,7 @@ def compareRunningMachines(maxWorker, dimage=None):
     exp.stop()
     cluster.stop()
 
-    return elapsedTime
+    return times
 
 
 def benchmarkTest():
