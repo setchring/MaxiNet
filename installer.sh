@@ -136,8 +136,8 @@ fi
 
 if [ "$pyro" == "y" ]
 then
-	sudo apt-get install python-pip
-	sudo pip install Pyro4
+	sudo apt-get install -y python-pip
+	sudo pip install -y Pyro4
 fi
 
 
