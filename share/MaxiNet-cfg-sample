@@ -12,9 +12,9 @@ sshuser = root         ; On Debian set this to root. On ubuntu set this to user 
 usesudo = False        ; If sshuser is set to something different than root set this to True.
 useSTT = False         ; enables stt usage for tunnels. Only usable with OpenVSwitch. Bandwithlimitations etc do not work on STT tunnels!
 
-#[containernet]
-#docker_registry_ip = http://10.0.3.15:5000
-#additional_dockerd_args =
+[containernet]
+#docker_registry_ip = http://10.0.3.15:5000   ;Comment out for use. Defines the registry mirror.
+#additional_dockerd_args =                    ;Comment out for use. Addidional args for the dockerd daemon
 
 [FrontendServer]
 ip = 192.168.123.1
