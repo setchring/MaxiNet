@@ -145,7 +145,7 @@ cd ~
 sudo rm -rf MaxiNet &> /dev/null
 git clone https://github.com/setchring/MaxiNet.git
 cd MaxiNet
-git checkout v1.0
+#git checkout v1.0
 sudo make install
 
 
