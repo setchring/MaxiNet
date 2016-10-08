@@ -12,6 +12,10 @@ sshuser = root         ; On Debian set this to root. On ubuntu set this to user 
 usesudo = False        ; If sshuser is set to something different than root set this to True.
 useSTT = False         ; enables stt usage for tunnels. Only usable with OpenVSwitch. Bandwithlimitations etc do not work on STT tunnels!
 
+#[containernet]
+#docker_registry_ip = http://10.0.3.15:5000
+#additional_dockerd_args =
+
 [FrontendServer]
 ip = 192.168.123.1
 threadpool = 256       ; increase if more workers are needed (each Worker requires 2 threads on the FrontendServer)
