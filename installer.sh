@@ -83,7 +83,7 @@ fi
 echo "installing required dependencies."
 
 sudo apt-get update
-sudo apt-get install git autoconf screen cmake build-essential sysstat python-matplotlib uuid-runtime ansible
+sudo apt-get install -y git autoconf screen cmake build-essential sysstat python-matplotlib uuid-runtime ansible
 
 if [ "$containernet" == "y" ]
 then
