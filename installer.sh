@@ -88,7 +88,7 @@ sudo apt-get install -y git autoconf screen cmake build-essential sysstat python
 if [ "$containernet" == "y" ]
 then
         sudo echo "localhost ansible_connection=local" >> /etc/ansible/hosts
-        git clone https://github.com/mpeuster/containernet.git
+        git clone https://github.com/setchring/containernet.git
 	cd containernet/ansible
 	sudo ansible-playbook install.yml
 fi
