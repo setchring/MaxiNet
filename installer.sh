@@ -19,16 +19,29 @@ then
     metis="y"
     pyro="y"
 else
-
-    read -n1 -r -p "Do you want to install Mininet 2.2.1rc1? ([y]/n)" mininet
-
-    if [ "$mininet" == "" ] || [ "$mininet" == "y" ] || [ "$mininet" == "Y" ]
+    
+    read -n1 -r -p "Do you want to install Containernet? ([y]/n)" containernet
+    
+    if [ "$containernet" == "" ] || [ "$containernet" == "y" ] || [ "$containernet" == "Y" ]
     then
-        mininet="y"
+        containernet="y"
         echo ""
-        echo "You choose to install Mininet. Warning: This will automatically remove existing directories ~/mininet, ~/loxigen, and ~/openflow"
+        echo "You choose to install Containernet. Warning: Use this option only on a clean OS without Mininet or Containernet!"
+	mininet="n"
     else
-        mininet="n"
+        containernet="n"
+	
+	echo ""
+        read -n1 -r -p "Do you want to install Mininet 2.2.1rc1? ([y]/n)" mininet
+
+        if [ "$mininet" == "" ] || [ "$mininet" == "y" ] || [ "$mininet" == "Y" ]
+        then
+            mininet="y"
+            echo ""
+            echo "You choose to install Mininet. Warning: This will automatically remove existing directories ~/mininet, ~/loxigen, and ~/openflow"
+        else
+            mininet="n"
+        fi
     fi
     echo ""
 
@@ -42,7 +55,7 @@ else
     fi
     echo ""
 
-    read -n1 -r -p "Do you want to install Pyro 4? ([y]/n)" pyro
+    read -n1 -r -p "Do you want to install Pyro 4.45? ([y]/n)" pyro
 
     if [ "$pyro" == "" ] || [ "$pyro" == "y" ] || [ "$pyro" == "Y" ]
     then
@@ -56,9 +69,10 @@ else
     echo "----------------"
     echo ""
     echo "MaxiNet installer will now install: "
+    if [ "$containernet" == "y" ]; then echo " -Containernet"; fi
     if [ "$mininet" == "y" ]; then echo " -Mininet 2.2.1rc1"; fi
     if [ "$metis" == "y" ]; then echo " -Metis 5.1"; fi
-    if [ "$pyro" == "y" ]; then echo " -Pyro 4"; fi
+    if [ "$pyro" == "y" ]; then echo " -Pyro 4.45"; fi
     echo " -MaxiNet 1.0"
     echo ""
 
@@ -68,7 +82,16 @@ fi
 
 echo "installing required dependencies."
 
-sudo apt-get install git autoconf screen cmake build-essential sysstat python-matplotlib uuid-runtime
+sudo apt-get update
+sudo apt-get install git autoconf screen cmake build-essential sysstat python-matplotlib uuid-runtime ansible
+
+if [ "$containernet" == "y" ]
+then
+        sudo echo "localhost ansible_connection=local" >> /etc/ansible/hosts
+        git clone https://github.com/mpeuster/containernet.git
+	cd containernet/ansible
+	sudo ansible-playbook install.yml
+fi
 
 if [ "$mininet" == "y" ]
 then
