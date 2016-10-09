@@ -112,12 +112,16 @@ class MaxiNetConfig(RawConfigParser):
 
     @Pyro4.expose
     def get_docker_registry_config(self):
+        paramIP = None
+        paramAdditional = ''
         try: # to get additional_dockerd_args
-            return self.get("containernet", "docker_registry_ip"), self.get("containernet", "additional_dockerd_args")
+            paramIP = self.get("containernet", "docker_registry_ip")
+            paramAdditional = self.get("containernet", "additional_dockerd_args")
+            return paramIP, paramAdditional
         except NoOptionError:
-            return None, None
+            return paramIP, paramAdditional
         except NoSectionError:
-            return None, None
+            return paramIP, paramAdditional
 
 
     def register(self):

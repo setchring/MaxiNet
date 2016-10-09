@@ -50,7 +50,7 @@ def Topo_2D_2S(testCase, minNumOfWorkers, maxNumOfWorkers):
     """
     topo = ContainernetTopo(controller=OVSSwitch)
 
-    d1 = topo.addDocker('d1', ip='10.0.0.251', dimage="busybox:latest")
+    d1 = topo.addDocker('d1', ip='10.0.0.251', dimage="ubuntu:trusty")
     d2 = topo.addDocker('d2', ip='10.0.0.252', dimage="ubuntu:trusty")
 
     s1 = topo.addSwitch('s1')
