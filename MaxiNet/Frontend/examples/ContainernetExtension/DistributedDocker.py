@@ -48,7 +48,7 @@ topo.addLink(s1, s2)
 cluster = Cluster()
 
 exp = ContainerExperiment(cluster, topo, switch=OVSSwitch)
-exp.setup()
+exp.setup(startWorkerConcurrent=True)
 
 print exp.get_node("h1").cmd("ifconfig")  # call mininet cmd function of h1
 print exp.get_node("h2").cmd("ifconfig")

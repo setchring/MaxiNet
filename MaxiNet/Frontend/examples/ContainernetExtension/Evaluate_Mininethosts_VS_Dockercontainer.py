@@ -192,7 +192,7 @@ def startTimeTest(numOfHosts, runs, resultFile):
                                 elapsedTimeUbuntu_2Worker, numOfHosts)
 
 
-def evaluateStartAndIdleUsage():
+def evaluateStartAndIdleUsage(concurrent=False):
     n = 280
     topo = ContainernetTopo(controller=OVSSwitch)
 
@@ -224,9 +224,9 @@ def evaluateStartAndIdleUsage():
 
     t.sleep(30)
 
-    exp.setup()
+    exp.setup(startWorkerConcurrent=concurrent)
 
-    t.sleep(120)
+    t.sleep(40)
 
     exp.stop()
     cluster.stop()
@@ -342,6 +342,7 @@ j = 5
 
 # Evaluate CPU, RAM and Network usage Hosts vs. Ubuntu container
 evaluateStartAndIdleUsage()
+evaluateStartAndIdleUsage(concurrent=True)
 
 f.close()
 logfile.close()

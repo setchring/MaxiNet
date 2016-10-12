@@ -1402,11 +1402,13 @@ class Experiment(object):
         """
         return self.get_node(node)
 
-    def setup(self):
+    def setup(self, startWorkerConcurrent=False):
         """Start experiment.
 
         Partition topology (if needed), assign topology parts to workers and
         start mininet instances on workers.
+
+        :startWorkerConcurrent If this is True, the worker will be startet concurrently.
 
         Raises:
             RuntimeError: If Cluster is too small.
@@ -1455,29 +1457,28 @@ class Experiment(object):
                                                                   tunnel[i],
                                                                   tunnel[2]])
         # start mininet instances
+        startupThreads = []
         for topo in subtopos:
             wid = subtopos.index(topo)
             worker = self.cluster.get_worker(self.workerid_to_hostname[wid])
             worker.set_switch(self.switch)
             # cache hostname for possible error message
             thn = worker.hn()
-            try:
-                if(self.controller):
-                    worker.start(
-                        topo=topo,
-                        tunnels=tunnels[subtopos.index(topo)],
-                        controller=self.controller)
-                else:
-                    worker.start(
-                        topo=topo,
-                        tunnels=tunnels[wid])
-            except Pyro4.errors.ConnectionClosedError:
-                self.logger.error("Remote " + thn + " exited abnormally. " +
-                                  "This is probably due to mininet not" +
-                                  " starting up. You might want to have a look"+
-                                  " at the output of the MaxiNetWorker calls on"+
-                                  " the Worker machines.")
-                raise
+
+            if startWorkerConcurrent:
+                # start worker concurrent
+                t = threading.Thread(target=self.startWorker, args=(worker, topo, tunnels, subtopos, wid, thn))
+                startupThreads.append(t)
+                t.start()
+            else:
+                # start worker sequential
+                self.startWorker(worker, topo, tunnels, subtopos, wid, thn)
+
+        # if running startup concurrent, wait for all worker
+        if startWorkerConcurrent:
+            for t in startupThreads:
+                t.join()
+
         # configure network if needed
         if (self.config.run_with_1500_mtu()):
             for topo in subtopos:
@@ -1494,6 +1495,25 @@ class Experiment(object):
             w1.run_cmd("ovs-vsctl -- set interface %s type=stt options=\"remote_ip=%s,local_ip=%s,key=%i\"" % (intf, ip2, ip1, tkey))
             w2.run_cmd("ovs-vsctl -- set interface %s type=stt options=\"remote_ip=%s,local_ip=%s,key=%i\"" % (intf, ip1, ip2, tkey))
         # start mininet instances
+
+    def startWorker(self, worker, topo, tunnels, subtopos, wid, thn):
+        try:
+            if (self.controller):
+                worker.start(
+                    topo=topo,
+                    tunnels=tunnels[subtopos.index(topo)],
+                    controller=self.controller)
+            else:
+                worker.start(
+                    topo=topo,
+                    tunnels=tunnels[wid])
+        except Pyro4.errors.ConnectionClosedError:
+            self.logger.error("Remote " + thn + " exited abnormally. " +
+                              "This is probably due to mininet not" +
+                              " starting up. You might want to have a look" +
+                              " at the output of the MaxiNetWorker calls on" +
+                              " the Worker machines.")
+            raise
 
     def setMTU(self, host, mtu):
         """Set MTUs of all Interfaces of mininet host.
