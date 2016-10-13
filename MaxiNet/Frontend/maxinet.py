@@ -917,6 +917,8 @@ class Experiment(object):
         self.isMonitoring = False
         self.shares = sharemapping
         self.nodemapping = nodemapping
+        # Flag for Concurrency execution at worker startup and stop
+        self.concurrentExecution = False
         if is_partitioned:
             self.topology = topology
         else:
@@ -1413,6 +1415,8 @@ class Experiment(object):
         Raises:
             RuntimeError: If Cluster is too small.
         """
+        self.concurrentExecution = startWorkerConcurrent
+
         self.logger.info("Clustering topology...")
         # partition topology (if needed)
         if(not self.topology):
@@ -1465,17 +1469,15 @@ class Experiment(object):
             # cache hostname for possible error message
             thn = worker.hn()
 
-            if startWorkerConcurrent:
-                # start worker concurrent
-                t = threading.Thread(target=self.startWorker, args=(worker, topo, tunnels, subtopos, wid, thn))
-                startupThreads.append(t)
-                t.start()
-            else:
-                # start worker sequential
-                self.startWorker(worker, topo, tunnels, subtopos, wid, thn)
+            # start worker concurrent
+            t = threading.Thread(target=self._startWorker, args=(worker, topo, tunnels, subtopos, wid, thn))
+            startupThreads.append(t)
+            t.start()
+            if not self.concurrentExecution:
+                t.join()
 
         # if running startup concurrent, wait for all worker
-        if startWorkerConcurrent:
+        if self.concurrentExecution:
             for t in startupThreads:
                 t.join()
 
@@ -1496,7 +1498,7 @@ class Experiment(object):
             w2.run_cmd("ovs-vsctl -- set interface %s type=stt options=\"remote_ip=%s,local_ip=%s,key=%i\"" % (intf, ip1, ip2, tkey))
         # start mininet instances
 
-    def startWorker(self, worker, topo, tunnels, subtopos, wid, thn):
+    def _startWorker(self, worker, topo, tunnels, subtopos, wid, thn):
         try:
             if (self.controller):
                 worker.start(
@@ -1544,12 +1546,24 @@ class Experiment(object):
 
     def stop(self):
         """Stop experiment and shut down emulation on workers."""
+        stopThreads = []
+
         if self.isMonitoring:
             self.terminate_logging()
         for worker in self.cluster.workers():
-            worker.stop()
-        self.cluster.remove_all_tunnels()
+            # stop worker concurrently
+            t = threading.Thread(target=worker.stop, args=())
+            stopThreads.append(t)
+            t.start()
+            if not self.concurrentExecution:
+                t.join()
 
+        # if running concurrent, wait for all worker
+        if self.concurrentExecution:
+            for t in stopThreads:
+                t.join()
+
+        self.cluster.remove_all_tunnels()
 
 class NodeWrapper(object):
     """Wrapper that allows most commands that can be used in mininet to be
