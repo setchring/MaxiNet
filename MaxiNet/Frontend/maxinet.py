@@ -666,13 +666,18 @@ class Cluster(object):
         """
         pyname = self.manager.reserve_worker(hostname, self.ident)
         if(pyname):
-            self.worker.append(Worker(self.nameserver, pyname, self.config.get_nameserver_password(), self.sshtool))
+            self.worker.append(self.createWorker(pyname))
             self.hostname_to_worker[hostname] = self.worker[-1]
             self.logger.info("added worker %s" % hostname)
             return True
         else:
             self.logger.warn("adding worker %s failed" % hostname)
             return False
+
+    @Pyro4.expose
+    def createWorker(self, pyname):
+        # Internal Method: Creates a worker object
+        return Worker(self.nameserver, pyname, self.config.get_nameserver_password(), self.sshtool)
 
     @Pyro4.expose
     def add_worker(self):
@@ -747,11 +752,6 @@ class Cluster(object):
         self.nameserver.remove(self.ident)
         self._pyrodaemon.unregister(self)
         self._pyrodaemon.shutdown()
-
-    @Pyro4.expose
-    def stop(self):
-        # Debug test. It should close unessesary tty threads
-        self._stop()
 
     @Pyro4.expose
     def num_workers(self):

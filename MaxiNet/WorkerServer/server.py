@@ -116,7 +116,7 @@ class WorkerServer(object):
             time.sleep(5)
 
     @Pyro4.expose
-    def start(self, ip, port, password, retry=float("inf"), dockerRegistryAddress=None, dockerRegistryArgs=None):
+    def start(self, ip, port, password, retry=float("inf")):
         """Start WorkerServer and ssh daemon and connect to nameserver."""
         self.logger.info("starting up and connecting to  %s:%d"
                          % (ip, port))
@@ -173,6 +173,8 @@ class WorkerServer(object):
             self._manager._pyroHmacKey=self._password
             self.logger.info("signing in...")
             if(self._manager.worker_signin(self._get_pyroname(), self.get_hostname())):
+                # Collect data from config file
+                dockerRegistryAddress, dockerRegistryArgs = self.config.get_docker_registry_config()
                 # maybe the dockerdaemon has to be customized
                 self.start_custom_dockerd(dockerRegistryAddress, dockerRegistryArgs)
 
@@ -389,6 +391,11 @@ class MininetManager(object):
         return name
 
     @Pyro4.expose
+    def removeHost(self, name, **params):
+        # Method of Containernet to remove a host
+        return self.net.removeHost(name, **params)
+
+    @Pyro4.expose
     def addSwitch(self, name, cls=None, **params):
         self.net.addSwitch(name, cls, **params)
         #TODO: This should not be done here
@@ -481,9 +488,6 @@ def main():
     if parsed.password:
         pw = parsed.password
 
-    # Collect data from config file
-    dockerRegistryAddress, dockerRegistryArgs = config.get_docker_registry_config()
-
     if os.getuid() != 0:
         print "MaxiNetWorker must run with root privileges!"
         sys.exit(1)
@@ -496,8 +500,7 @@ def main():
 
         signal.signal(signal.SIGINT, workerserver.exit_handler)
 
-        workerserver.start(ip=ip, port=port, password=pw, dockerRegistryAddress=dockerRegistryAddress,
-                           dockerRegistryArgs=dockerRegistryArgs)
+        workerserver.start(ip=ip, port=port, password=pw)
         workerserver.monitorFrontend()
 
 
