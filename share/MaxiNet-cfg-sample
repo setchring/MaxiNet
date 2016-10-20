@@ -14,7 +14,7 @@ useSTT = False         ; enables stt usage for tunnels. Only usable with OpenVSw
 
 [containernet]
 #docker_registry_ip = http://10.0.3.15:5000   ;Comment out for use. Defines the registry mirror.
-#additional_dockerd_args =                    ;Comment out for use. Addidional args for the dockerd daemon
+#additional_dockerd_args = --registry-mirror=http://10.0.2.5:5000  ;(Example for additional registries) Comment out for use. Additional args for the dockerd daemon
 
 [FrontendServer]
 ip = 192.168.123.1
