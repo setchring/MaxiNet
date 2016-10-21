@@ -1472,6 +1472,8 @@ class Experiment(object):
             # start worker concurrent
             t = threading.Thread(target=self._startWorker, args=(worker, topo, tunnels, subtopos, wid, thn))
             startupThreads.append(t)
+
+        for t in startupThreads:
             t.start()
             if not self.concurrentExecution:
                 t.join()
