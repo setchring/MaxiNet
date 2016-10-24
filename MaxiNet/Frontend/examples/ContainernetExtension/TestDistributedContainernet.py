@@ -1,12 +1,11 @@
 import unittest
 import time
 
-from MaxiNet.Frontend.containernetWrapper import ContainernetTopo, ContainerExperiment
-from MaxiNet.Frontend.maxinet import Cluster
-from MaxiNet.tools import Tools
-from mininet.log import setLogLevel, info
+from MaxiNet.Frontend.containernetWrapper import ContainernetTopo, ContainerExperiment, ContainernetCluster
 from mininet.node import OVSSwitch
 
+# This file contains unittests which should test the added functions of Containernet and the modified partitioner class
+# Warning: this will kill all ubuntu docker containers !!!
 
 class MyTestCase(unittest.TestCase):
     def test_2D_2S(self):
@@ -14,9 +13,9 @@ class MyTestCase(unittest.TestCase):
         Test following static topo with different numbers of workers    d1---s1---s2---d1
         :return:
         """
-        workers = len(Cluster(maxWorkers=0).get_available_workers())
-        self.assertGreaterEqual(workers, 3,
-                                msg='For this test you need at least 3 running workers. You have %s worker free.' % workers)
+        workers = len(ContainernetCluster(maxWorkers=0).get_available_workers())
+        self.assertGreaterEqual(workers, 2,
+                                msg='For this test you need at least 2 running workers. You have %s worker free.' % workers)
 
         iterate_number_of_worker(self, Topo_2D_2S)
 
@@ -28,18 +27,13 @@ if __name__ == '__main__':
     unittest.main()
 
 
-def iterate_number_of_worker(testCase, testToRun): #TODO zusaetzliche Variablen durchleiten
+def iterate_number_of_worker(testCase, testToRun): #TODO evtl. zusaetzliche Variablen durchleiten
+    # Each test should work on 1 or more workers
     testToRun(testCase, 1, 1)
 
     testToRun(testCase, 1, 2)
 
-    testToRun(testCase, 1, 3)
-
     testToRun(testCase, 2, 2)
-
-    testToRun(testCase, 2, 3)
-
-    testToRun(testCase, 3, 3)
 
 
 def Topo_2D_2S(testCase, minNumOfWorkers, maxNumOfWorkers):
@@ -47,8 +41,10 @@ def Topo_2D_2S(testCase, minNumOfWorkers, maxNumOfWorkers):
     - Creates Topo with 2 Dockercontainers and 2 Switches    d1---s1---s2---d1
     - Test if the connection between d1 an d2 works
     - Test if link update works
+    - Test if automatic pull works
     """
     topo = ContainernetTopo(controller=OVSSwitch)
+    waitTime = 7
 
     d1 = topo.addDocker('d1', ip='10.0.0.251', dimage="ubuntu:trusty")
     d2 = topo.addDocker('d2', ip='10.0.0.252', dimage="ubuntu:trusty")
@@ -60,13 +56,17 @@ def Topo_2D_2S(testCase, minNumOfWorkers, maxNumOfWorkers):
     topo.addLink(s2, d2)
     topo.addLink(s1, s2)
 
-    cluster = Cluster(minWorkers=minNumOfWorkers, maxWorkers=maxNumOfWorkers)
+    cluster = ContainernetCluster(minWorkers=minNumOfWorkers, maxWorkers=maxNumOfWorkers)
+
+    # automatic pull will pull missing images, so we remove them before
+    for worker in cluster.workers():
+        print worker.run_cmd("docker rmi -f ubuntu:trusty")
 
     exp = ContainerExperiment(cluster, topo, switch=OVSSwitch)
     exp.setup()
 
     # waiting 5 seconds for routing algorithms on the controller to converge
-    time.sleep(5)
+    time.sleep(waitTime)
 
     out = exp.get_node('d1').cmd("ping -c 5 10.0.0.252")
     testCase.assertRegexpMatches(out, '.* 0% packet loss.*')
@@ -76,7 +76,7 @@ def Topo_2D_2S(testCase, minNumOfWorkers, maxNumOfWorkers):
 
     # update link status  d1-x-s1---s2---d2
     exp.configLinkStatus("d1", "s1", "down")
-    time.sleep(5)
+    time.sleep(waitTime)
 
     out = exp.get_node('d1').cmd("ping -c 5 10.0.0.252")
     testCase.assertRegexpMatches(out, '.* 100% packet loss.*')
@@ -87,7 +87,7 @@ def Topo_2D_2S(testCase, minNumOfWorkers, maxNumOfWorkers):
     # update link status  d1---s1-x-s2---d2
     exp.configLinkStatus("d1", "s1", "up")
     exp.configLinkStatus("s1", "s2", "down")
-    time.sleep(5)
+    time.sleep(waitTime)
 
     out = exp.get_node('d1').cmd("ping -c 5 10.0.0.252")
     testCase.assertRegexpMatches(out, '.* 100% packet loss.*')
@@ -97,7 +97,7 @@ def Topo_2D_2S(testCase, minNumOfWorkers, maxNumOfWorkers):
 
     # update link status  d1---s1---s2---d2
     exp.configLinkStatus("s1", "s2", "up")
-    time.sleep(5)
+    time.sleep(waitTime)
 
     # ping should be work now again
     out = exp.get_node('d1').cmd("ping -c 5 10.0.0.252")
@@ -118,5 +118,5 @@ def Topo_2D_2S(testCase, minNumOfWorkers, maxNumOfWorkers):
     exp.stop()
     cluster.remove_workers()
 
-    time.sleep(10)
+    time.sleep(waitTime*2)
 

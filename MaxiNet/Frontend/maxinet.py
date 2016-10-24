@@ -1404,7 +1404,7 @@ class Experiment(object):
         """
         return self.get_node(node)
 
-    def setup(self, startWorkerConcurrent=False):
+    def setup(self, startWorkerConcurrent=False, setSwitchweightByHostweight=False):
         """Start experiment.
 
         Partition topology (if needed), assign topology parts to workers and
@@ -1421,7 +1421,7 @@ class Experiment(object):
         # partition topology (if needed)
         if(not self.topology):
             parti = Partitioner()
-            parti.loadtopo(self.origtopology)
+            parti.loadtopo(self.origtopology, setSwitchweightByHostweight=setSwitchweightByHostweight)
             if(self.nodemapping):
                 self.topology = parti.partition_using_map(self.nodemapping)
             else:

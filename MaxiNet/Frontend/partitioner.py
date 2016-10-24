@@ -98,9 +98,79 @@ class Partitioner(object):
         self.logger = logging.getLogger(__name__)
         self.metisCMD = metis
 
-    def loadtopo(self, topo):
+    def loadtopo(self, topo, setSwitchweightByHostweight=False):
         """Load topology into partitioner and write metis input file.
 
+        Args:
+            topo: mininet.topo.Topo instance.
+            setSwitchweightByHostweight: use the weights of nodes as reference for partition
+                example in WeightedTopologyCutExample.py
+        """
+        i = 1
+        self.pos = {}
+        self.switches = {}
+        self.tunnels = []
+        self.partitions = []
+        self.topo = topo
+        metis = [[]]  # <-- index 0 is header
+        for switch in topo.switches():
+            self.switches[switch] = i
+            self.pos[i] = switch
+            i += 1
+            metis.append([1])
+            if setSwitchweightByHostweight:
+                metis[i-1].append(1)
+        links = 0
+        for link in topo.links():
+            if topo.isSwitch(link[0]) != topo.isSwitch(link[1]):
+                if topo.isSwitch(link[0]):
+                    switch = link[0]
+                    host = link[1]
+                else:
+                    switch = link[1]
+                    host = link[0]
+                if not setSwitchweightByHostweight:
+                    metis[self.switches[switch]][0] += 1
+                else:
+                    if "CPUWeight" in topo.nodeInfo(host):
+                        cpuWeight = int(topo.nodeInfo(host)["CPUWeight"])
+                    else:
+                        cpuWeight = 1
+                    if "RAMWeight" in topo.nodeInfo(host):
+                        ramWeight = int(topo.nodeInfo(host)["RAMWeight"])
+                    else:
+                        ramWeight = 1
+                    metis[self.switches[switch]][0] += cpuWeight
+                    metis[self.switches[switch]][1] += ramWeight
+            else:
+                metis[self.switches[link[0]]].append(self.switches[link[1]])
+                metis[self.switches[link[1]]].append(self.switches[link[0]])
+                links += 1
+                if not setSwitchweightByHostweight: # ignore bandwidth
+                    if("bw" in topo.linkInfo(link[0], link[1])):
+                        metis[self.switches[link[0]]]\
+                            .append(int(topo.linkInfo(link[0], link[1])["bw"]))
+                        metis[self.switches[link[1]]]\
+                            .append(int(topo.linkInfo(link[0], link[1])["bw"]))
+                    else:
+                        metis[self.switches[link[0]]].append(100)
+                        metis[self.switches[link[1]]].append(100)
+
+                #else:
+                    # ignore bandwidth
+        #write header
+        if not setSwitchweightByHostweight:
+            metis[0] = [len(self.switches), links, "011 0"]
+        else:
+            metis[0] = [len(self.switches), links, "010 2"]
+        ret = ""
+        for line in metis:
+            ret = ret + " ".join(map(str, line)) + "\n"
+        self.graph = self._write_to_file(ret)
+        #self.loadtopo_orig(topo)
+
+    def loadtopo_orig(self, topo):
+        """Load topology into partitioner and write metis input file.
         Args:
             topo: mininet.topo.Topo instance.
         """
@@ -118,25 +188,25 @@ class Partitioner(object):
             metis.append([1])
         links = 0
         for link in topo.links():
-            if(topo.isSwitch(link[0]) and not topo.isSwitch(link[1])):
+            if (topo.isSwitch(link[0]) and not topo.isSwitch(link[1])):
                 metis[self.switches[link[0]]][0] = \
-                                metis[self.switches[link[0]]][0] + 1
-            elif(topo.isSwitch(link[1]) and not topo.isSwitch(link[0])):
+                    metis[self.switches[link[0]]][0] + 1
+            elif (topo.isSwitch(link[1]) and not topo.isSwitch(link[0])):
                 metis[self.switches[link[1]]][0] = \
-                                metis[self.switches[link[1]]][0] + 1
+                    metis[self.switches[link[1]]][0] + 1
             else:
                 metis[self.switches[link[0]]].append(self.switches[link[1]])
                 metis[self.switches[link[1]]].append(self.switches[link[0]])
-                if("bw" in topo.linkInfo(link[0], link[1])):
-                    metis[self.switches[link[0]]]\
+                if ("bw" in topo.linkInfo(link[0], link[1])):
+                    metis[self.switches[link[0]]] \
                         .append(int(topo.linkInfo(link[0], link[1])["bw"]))
-                    metis[self.switches[link[1]]]\
+                    metis[self.switches[link[1]]] \
                         .append(int(topo.linkInfo(link[0], link[1])["bw"]))
                 else:
                     metis[self.switches[link[0]]].append(100)
                     metis[self.switches[link[1]]].append(100)
                 links += 1
-        #write header
+        # write header
         metis[0] = [len(self.switches), links, "011 0"]
         ret = ""
         for line in metis:
@@ -252,9 +322,9 @@ class Partitioner(object):
             del dr["node2"]
         return dr
 
-    def _add_links(self, switch_to_part):
-        for node in self.topo.nodes():
-            if not self.topo.isSwitch(node):
+    def _add_links(self, switch_to_part): # Todo: Topologies with hosts that have connections to multiple switches
+        for node in self.topo.nodes():    # will be duplicated on multiple workers if the switches are on multiple
+            if not self.topo.isSwitch(node): # workers !!! Maybe not wanted?
                 for edge in self.topo.links():
                     if(edge[0] == node):
                         info = self._remove_nodeinfo(self.topo.linkInfo(node, edge[1]))

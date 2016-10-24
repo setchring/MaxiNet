@@ -6,8 +6,7 @@
 
 import time
 
-from MaxiNet.Frontend.containernetWrapper import ContainernetTopo, ContainerExperiment
-from MaxiNet.Frontend.maxinet import Cluster
+from MaxiNet.Frontend.containernetWrapper import ContainernetTopo, ContainerExperiment, ContainernetCluster
 from MaxiNet.tools import Tools
 from mininet.log import setLogLevel, info
 from mininet.node import OVSSwitch
@@ -45,9 +44,10 @@ topo.addLink(s1, s2)
 #net.addLink(d3, s3)
 
 
-cluster = Cluster()
+cluster = ContainernetCluster()
 
 exp = ContainerExperiment(cluster, topo, switch=OVSSwitch)
+# start hosts parallel
 exp.setup(startWorkerConcurrent=True)
 
 print exp.get_node("h1").cmd("ifconfig")  # call mininet cmd function of h1
@@ -60,9 +60,9 @@ print "waiting 5 seconds for routing algorithms on the controller to converge"
 #time.sleep(5)
 
 print "ping d1 ---> d2"
-#print exp.get_node("d1").cmd("ping -c 5 10.0.0.252")
+print exp.get_node("d1").cmd("ping -c 5 10.0.0.252")
 print "ping d2 ---> d1"
-#print exp.get_node("d2").cmd("ping -c 5 10.0.0.251")
+print exp.get_node("d2").cmd("ping -c 5 10.0.0.251")
 
 #exp.CLI(locals(), globals())
 
@@ -86,6 +86,10 @@ print "ping d3 --> d1"
 print d3.cmd("ping -c 5 10.0.0.251")
 print "ping d1 --> d3"
 print exp.get_node("d1").cmd("ping -c 5 10.0.0.254")
+
+# remove a container
+exp.removeDocker('d1')
+print d3.cmd("ping -c 5 10.0.0.251")
 
 print "ping d3 --> d2"
 print d3.cmd("ping -c 5 10.0.0.252")
