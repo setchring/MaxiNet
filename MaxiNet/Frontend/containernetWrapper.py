@@ -74,7 +74,6 @@ class ContainernetTopo ( Topo ):
         Topo.__init__(self, *args, **params)
 
     def addDocker(self, name, cls=Docker, **opts):
-        # TODO: Comment check
         """
         Wrapper for addHost method that adds a
         Docker container as a host.

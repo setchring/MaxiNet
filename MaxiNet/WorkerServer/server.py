@@ -122,7 +122,6 @@ class WorkerServer(object):
                          % (ip, port))
 
         # Cleanup mininet for a clean worker environment. Reduce overhead for user if previous run crashed.
-        # Maybe TODO: make configurable from Configfile ?
         cleanup()
 
         #store for reconnection attempts

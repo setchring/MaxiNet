@@ -50,6 +50,11 @@ exp = ContainerExperiment(cluster, topo, switch=OVSSwitch)
 # start hosts parallel
 exp.setup(startWorkerConcurrent=True)
 
+# versch tests
+
+
+
+
 print exp.get_node("h1").cmd("ifconfig")  # call mininet cmd function of h1
 print exp.get_node("h2").cmd("ifconfig")
 

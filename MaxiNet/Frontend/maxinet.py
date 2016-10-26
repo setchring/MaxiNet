@@ -1588,8 +1588,15 @@ class NodeWrapper(object):
     "connected", "setup", "dpctl", "start", "stop", "attach",
     "detach", "controllerUUIDs", "checkListening"
 
+    Containernet method calls that SHOULD work:
+    "updateCpuLimit", "updateMemoryLimit", "cgroupSet", "cgroupGet"
+
     Mininet attributes that SHOULD be queryable:
     "name", "inNamespace", "params", "nameToIntf", "waiting"
+
+    Containernet attributes that SHOULD be queryable:
+    "dimage", "cpu_quota", "cpu_period", "cpu_shares",
+    "cpuset", "mem_limit", "memswap_limit", "volumes"
 
     Attributes:
         nn: Node name as String.
@@ -1640,11 +1647,13 @@ class NodeWrapper(object):
                 "cgroupGet", "cgroupDel", "chrt", "rtInfo", "cfsInfo",
                 "setCPUFrac", "setCPUs", "defaultDpid", "defaultIntf",
                 "connected", "setup", "dpctl", "start", "stop", "attach",
-                "detach", "controllerUUIDs", "checkListening"
+                "detach", "controllerUUIDs", "checkListening", "updateCpuLimit",
+                "updateMemoryLimit", "cgroupSet", "cgroupGet"
         ]:
             return method
         elif name in ["name", "inNamespace", "params", "nameToIntf",
-                      "waiting"]:
+                      "waiting", "dimage", "cpu_quota", "cpu_period", "cpu_shares",
+                      "cpuset", "mem_limit", "memswap_limit", "volumes"]:
             return self._get(name)
         else:
             raise AttributeError(name)
