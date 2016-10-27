@@ -153,62 +153,62 @@ def plotBoxes():
         ),
         boxmean='sd'
     )
-    trace10 = go.Box(
-        y=[
-            25.571568965911865,
-            36.26844000816345,
-            36.47072696685791,
-            36.47522687911987,
-            36.80563712120056
-        ],
-        name='240 Hosts',
-        marker=dict(
-            color='rgb(8, 81, 156)',
-        ),
-        boxmean='sd'
-    )
-    trace11 = go.Box(
-        y=[
-            88.68352913856506,
-            80.14780402183533,
-            82.73843598365784,
-            84.35875296592712,
-            86.76403188705444
-        ],
-        name='240 Container',
-        marker=dict(
-            color='rgb(10, 140, 208)',
-        ),
-        boxmean='sd'
-    )
-    trace12 = go.Box(
-        y=[
-            30.141373872756958,
-            42.5898220539093,
-            43.233330965042114,
-            44.23212289810181,
-            44.816850900650024
-        ],
-        name='280 Hosts',
-        marker=dict(
-            color='rgb(8, 81, 156)',
-        ),
-        boxmean='sd'
-    )
-    trace13 = go.Box(
-        y=[
-            107.80886006355286,
-            96.45325303077698,
-            99.27463698387146,
-            102.14648795127869,
-            104.41336393356323
-        ],
-        name='280 Container',
-        marker=dict(
-            color='rgb(10, 140, 208)',
-        ),
-        boxmean='sd'
-    )
+    # trace10 = go.Box(
+    #     y=[
+    #         25.571568965911865,
+    #         36.26844000816345,
+    #         36.47072696685791,
+    #         36.47522687911987,
+    #         36.80563712120056
+    #     ],
+    #     name='240 Hosts',
+    #     marker=dict(
+    #         color='rgb(8, 81, 156)',
+    #     ),
+    #     boxmean='sd'
+    # )
+    # trace11 = go.Box(
+    #     y=[
+    #         88.68352913856506,
+    #         80.14780402183533,
+    #         82.73843598365784,
+    #         84.35875296592712,
+    #         86.76403188705444
+    #     ],
+    #     name='240 Container',
+    #     marker=dict(
+    #         color='rgb(10, 140, 208)',
+    #     ),
+    #     boxmean='sd'
+    # )
+    # trace12 = go.Box(
+    #     y=[
+    #         30.141373872756958,
+    #         42.5898220539093,
+    #         43.233330965042114,
+    #         44.23212289810181,
+    #         44.816850900650024
+    #     ],
+    #     name='280 Hosts',
+    #     marker=dict(
+    #         color='rgb(8, 81, 156)',
+    #     ),
+    #     boxmean='sd'
+    # )
+    # trace13 = go.Box(
+    #     y=[
+    #         107.80886006355286,
+    #         96.45325303077698,
+    #         99.27463698387146,
+    #         102.14648795127869,
+    #         104.41336393356323
+    #     ],
+    #     name='280 Container',
+    #     marker=dict(
+    #         color='rgb(10, 140, 208)',
+    #     ),
+    #     boxmean='sd'
+    # )
     trace14 = go.Box(
         y=[
             34.71859788894653,
@@ -231,8 +231,7 @@ def plotBoxes():
         ),
         boxmean='sd'
     )
-    data = [trace0, trace1, trace2, trace3, trace4, trace5, trace6, trace7, trace8, trace9, trace10, trace11, trace12,
-            trace13, trace14, trace15]
+    data = [trace0, trace1, trace2, trace3, trace4, trace5, trace6, trace7, trace8, trace9, trace14, trace15]
     layout = go.Layout(title='Startzeiten von Hosts bzw. Containern mit einem Worker', showlegend=False, yaxis=dict(
             title="Startzeit in Sekunden"
         ))
@@ -389,62 +388,62 @@ def plotBoxes2():
         ),
         boxmean='sd'
     )
-    trace10 = go.Box(
-        y=[
-            29.72091507911682,
-            30.075870037078857,
-            30.25898790359497,
-            30.211423873901367,
-            30.677078008651733
-        ],
-        name='240 Hosts',
-        marker=dict(
-            color='rgb(8, 81, 156)',
-        ),
-        boxmean='sd'
-    )
-    trace11 = go.Box(
-        y=[
-            74.89307904243469,
-            74.9702980518341,
-            76.87759709358215,
-            78.20884490013123,
-            79.46793007850647
-        ],
-        name='240 Container',
-        marker=dict(
-            color='rgb(10, 140, 208)',
-        ),
-        boxmean='sd'
-    )
-    trace12 = go.Box(
-        y=[
-            36.64970803260803,
-            36.93167185783386,
-            37.233668088912964,
-            37.48106002807617,
-            37.63134694099426
-        ],
-        name='280 Hosts',
-        marker=dict(
-            color='rgb(8, 81, 156)',
-        ),
-        boxmean='sd'
-    )
-    trace13 = go.Box(
-        y=[
-            89.43371391296387,
-            92.05170917510986,
-            93.3434431552887,
-            95.22685503959656,
-            96.73871803283691
-        ],
-        name='280 Container',
-        marker=dict(
-            color='rgb(10, 140, 208)',
-        ),
-        boxmean='sd'
-    )
+    # trace10 = go.Box(
+    #     y=[
+    #         29.72091507911682,
+    #         30.075870037078857,
+    #         30.25898790359497,
+    #         30.211423873901367,
+    #         30.677078008651733
+    #     ],
+    #     name='240 Hosts',
+    #     marker=dict(
+    #         color='rgb(8, 81, 156)',
+    #     ),
+    #     boxmean='sd'
+    # )
+    # trace11 = go.Box(
+    #     y=[
+    #         74.89307904243469,
+    #         74.9702980518341,
+    #         76.87759709358215,
+    #         78.20884490013123,
+    #         79.46793007850647
+    #     ],
+    #     name='240 Container',
+    #     marker=dict(
+    #         color='rgb(10, 140, 208)',
+    #     ),
+    #     boxmean='sd'
+    # )
+    # trace12 = go.Box(
+    #     y=[
+    #         36.64970803260803,
+    #         36.93167185783386,
+    #         37.233668088912964,
+    #         37.48106002807617,
+    #         37.63134694099426
+    #     ],
+    #     name='280 Hosts',
+    #     marker=dict(
+    #         color='rgb(8, 81, 156)',
+    #     ),
+    #     boxmean='sd'
+    # )
+    # trace13 = go.Box(
+    #     y=[
+    #         89.43371391296387,
+    #         92.05170917510986,
+    #         93.3434431552887,
+    #         95.22685503959656,
+    #         96.73871803283691
+    #     ],
+    #     name='280 Container',
+    #     marker=dict(
+    #         color='rgb(10, 140, 208)',
+    #     ),
+    #     boxmean='sd'
+    # )
     trace14 = go.Box(
         y=[
             42.13955593109131,
@@ -473,8 +472,7 @@ def plotBoxes2():
         ),
         boxmean='sd'
     )
-    data = [trace0, trace1, trace2, trace3, trace4, trace5, trace6, trace7, trace8, trace9, trace10, trace11, trace12,
-            trace13, trace14, trace15]
+    data = [trace0, trace1, trace2, trace3, trace4, trace5, trace6, trace7, trace8, trace9, trace14, trace15]
     layout = go.Layout(title='Startzeiten von Hosts bzw. Containern mit zwei Workern', showlegend=False,yaxis=dict(
             title="Startzeit in Sekunden"
         ))
@@ -668,8 +666,8 @@ def start160Parralel():
     init_notebook_mode()
     plot(fig, image='svg', filename='startvergleich160paralel.html')
 
-systemLastVergleich()
-#plotBoxes()
-#plotBoxes2()
-start160Sequenziell()
-start160Parralel()
+#systemLastVergleich()
+plotBoxes()
+plotBoxes2()
+#start160Sequenziell()
+#start160Parralel()

@@ -79,7 +79,7 @@ def Topo_2D_2S(testCase, minNumOfWorkers, maxNumOfWorkers):
         print worker.run_cmd("docker rmi -f ubuntu:trusty")
 
     exp = ContainerExperiment(cluster, topo, switch=OVSSwitch)
-    exp.setup()
+    exp.setup(startWorkerConcurrent=True)
 
     # waiting 5 seconds for routing algorithms on the controller to converge
     time.sleep(waitTime)
@@ -143,6 +143,7 @@ def Test_Exclusive_DockerFeatures(testCase, minNumOfWorkers, maxNumOfWorkers):
         - Creates Topo with 2 Dockercontainers and 2 Switches    d1---s1---s2---d1
         - Test all methods and attributes of the Docker class
         - Add and remove a container at runtime
+        - Test concurrent startup when using multiple worker
         """
     topo = ContainernetTopo(controller=OVSSwitch)
     waitTime = 7

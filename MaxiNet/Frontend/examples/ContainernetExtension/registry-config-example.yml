@@ -18,5 +18,3 @@ health:
     threshold: 3
 proxy:
   remoteurl: https://registry-1.docker.io
-  username: setchring
-  password: 5xQdf2z$3c8@QSx7xPJnG!aXvk3VJ^7y5r$PGdDpTjPgebNeWK9&Qn3B@ecNFNNRXw^W5shm8fk4CnQ%RpRBZhpjYUMkY!MK^@3z
