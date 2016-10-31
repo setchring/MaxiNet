@@ -57,7 +57,7 @@ def Topo_2D_2S(testCase, minNumOfWorkers, maxNumOfWorkers):
     - Creates Topo with 2 Dockercontainers and 2 Switches    d1---s1---s2---d1
     - Test if the connection between d1 an d2 works
     - Test if link update works
-    - Test if automatic pull works (indirectly checking method _check_image_[exists, pull])
+    - Test if automatic pull works (checking methods _check_image_[exists, pull])
     """
     topo = ContainernetTopo(controller=OVSSwitch)
     waitTime = 7
@@ -76,7 +76,7 @@ def Topo_2D_2S(testCase, minNumOfWorkers, maxNumOfWorkers):
 
     # automatic pull will pull missing images, so we remove them before
     for worker in cluster.workers():
-        print worker.run_cmd("docker rmi -f ubuntu:trusty")
+        print worker.run_cmd("docker pull ubuntu:precise")
 
     exp = ContainerExperiment(cluster, topo, switch=OVSSwitch)
     exp.setup(startWorkerConcurrent=True)
@@ -130,6 +130,27 @@ def Topo_2D_2S(testCase, minNumOfWorkers, maxNumOfWorkers):
         testCase.assertNotEqual(d1_hostname, d2_hostname)
     else:
         testCase.assertEqual(d1_hostname, d2_hostname)
+
+    # test docker image methods
+    exp.get_worker('d1').run_cmd("docker rmi -f ubuntu:precise")
+    out = exp.get_node('d1')._image_exists('ubuntu', 'precise')
+    testCase.assertFalse(out)
+
+    # both methods should return false
+    out = exp.get_node('d1')._check_image_exists('ubuntu:precise')
+    testCase.assertFalse(out)
+    out = exp.get_node('d1')._image_exists('ubuntu', 'precise')
+    testCase.assertFalse(out)
+
+    # pull a missing image, should return true
+    out = exp.get_node('d1')._pull_image('ubuntu', 'precise')
+    testCase.assertTrue(out)
+
+    # both methods should return true
+    out = exp.get_node('d1')._check_image_exists('ubuntu:precise')
+    testCase.assertTrue(out)
+    out = exp.get_node('d1')._image_exists('ubuntu', 'precise')
+    testCase.assertTrue(out)
 
     exp.stop()
     cluster.remove_workers()

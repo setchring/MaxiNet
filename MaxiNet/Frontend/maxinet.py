@@ -1648,7 +1648,8 @@ class NodeWrapper(object):
                 "setCPUFrac", "setCPUs", "defaultDpid", "defaultIntf",
                 "connected", "setup", "dpctl", "start", "stop", "attach",
                 "detach", "controllerUUIDs", "checkListening", "updateCpuLimit",
-                "updateMemoryLimit", "cgroupSet", "cgroupGet"
+                "updateMemoryLimit", "cgroupSet", "cgroupGet", "_check_image_exists",
+                "_image_exists", "_pull_image"
         ]:
             return method
         elif name in ["name", "inNamespace", "params", "nameToIntf",
